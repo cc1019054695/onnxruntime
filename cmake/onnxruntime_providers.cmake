@@ -444,6 +444,21 @@ if (onnxruntime_USE_DML)
   function(target_add_dml target)
     target_link_libraries(${target} PRIVATE "${DML_PACKAGE_DIR}/bin/${onnxruntime_target_platform}/DirectML.lib")
     target_include_directories(${target} PRIVATE "${DML_PACKAGE_DIR}/include")
+    add_custom_command(TARGET ${target}
+                   PRE_BUILD
+                   COMMAND powershell -c "echo DML_PACKAGE_DIR/include=${DML_PACKAGE_DIR}/include"
+                   COMMAND powershell -c "tree /F ${DML_PACKAGE_DIR}"
+                   COMMAND powershell -c "cat ${DML_PACKAGE_DIR}/build/DirectML.targets"
+                   COMMAND powershell -c "exit 1"
+                   VERBATIM)
+    message(STATUS "${DML_PACKAGE_DIR}/include")
+    if(EXISTS "${DML_PACKAGE_DIR}/include")
+      message(STATUS "exists")
+      file(READ "${DML_PACKAGE_DIR}/build/DirectML.targets" targets)
+      message(FATAL_ERROR ${targets})
+    else()
+      message(STATUS "does not exist")
+    endif()
   endfunction()
 
   target_add_dml(onnxruntime_providers_dml)
